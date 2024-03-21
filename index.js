@@ -2,18 +2,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const cors = require('cors');
-require('dotenv').config()
-
+require('dotenv').config();
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  db_port : process.env.DB_PORT
+  port: process.env.DB_PORT // Fix: Change `db_port` to `port`
 });
 
 // Middleware
@@ -24,11 +23,10 @@ app.use(bodyParser.json());
 db.connect((err) => {
   if (err) {
     console.error('Error connecting to MySQL:', err);
-    return;
+    process.exit(1); // Fix: Exit process if unable to connect to database
   }
   console.log('Connected to MySQL database');
 });
-
 
 // Handle submission of code snippets
 app.post('/submit', (req, res) => {
@@ -36,7 +34,7 @@ app.post('/submit', (req, res) => {
   if (!username || !language || !code) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  
+
   const timestamp = new Date();
   const limitedCode = code.slice(0, 100);
 
